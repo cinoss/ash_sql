@@ -195,11 +195,20 @@ defmodule AshSql.AggregateQuery do
 
         repo = AshSql.dynamic_repo(resource, implementation, query)
 
+        tenant =
+          case agg do
+            %{context: %{tenant: tenant}} ->
+              Ash.ToTenant.to_tenant(tenant, resource)
+
+            _ ->
+              nil
+          end
+
         Map.merge(
           result || %{},
           repo.one(
             query,
-            AshSql.repo_opts(repo, query.__ash_bindings__.sql_behaviour, nil, nil, resource)
+            AshSql.repo_opts(repo, query.__ash_bindings__.sql_behaviour, nil, tenant, resource)
           )
         )
     end)
